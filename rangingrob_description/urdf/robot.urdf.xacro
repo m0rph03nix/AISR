@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<robot name="sharp_robot" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:arg name="hardware_type" default="mockup"/>
+  <xacro:arg name="serial_port"   default="/dev/ttyUSB0"/>
+
+  <link name="base_link"/>
+
+  <!-- Lien geometrique representant le Sharp GP2Y0A51SK0F.
+       Mesh visuel : STL en mm, scale 0.001, recentre et oriente pour que l'axe de mesure = +X.
+       Collision : box primitive (moins couteux que le mesh). -->
+  <link name="sharp_sensor_frame">
+    <visual>
+      <origin xyz="-0.022073 -0.000618 -0.018921" rpy="0 0 1.5708"/>
+      <geometry>
+        <mesh filename="package://rangingrob_description/mesh/sharp_gp2y0a51sk0f.stl"
+              scale="0.001 0.001 0.001"/>
+      </geometry>
+      <material name="dark_grey">
+        <color rgba="0.15 0.15 0.15 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="0.008 0.0175 0.008"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.0015"/>
+      <inertia ixx="1e-7" ixy="0" ixz="0" iyy="1e-7" iyz="0" izz="1e-7"/>
+    </inertial>
+  </link>
+
+  <joint name="sensor_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="sharp_sensor_frame"/>
+    <!-- Le capteur pointe vers +X depuis l'avant du robot -->
+    <origin xyz="0.05 0.0 0.0" rpy="0.0 0.0 0.0"/>
+  </joint>
+
+  <!-- Inclusion du bloc ros2_control selon le type de hardware -->
+  <xacro:include filename="$(find rangingrob_description)/urdf/ros2_control_$(arg hardware_type).urdf.xacro"/>
+
+</robot>

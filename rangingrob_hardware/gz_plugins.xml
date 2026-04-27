@@ -1,0 +1,11 @@
+<library path="gz_sharp_sim_system">
+  <class name="rangingrob_hardware/GazeboSharpSimSystem"
+         type="rangingrob_hardware::GazeboSharpSimSystem"
+         base_class_type="gz_ros2_control::GazeboSimSystemInterface">
+    <description>
+      Plugin gz_ros2_control pour un capteur Sharp GP2Y0A51SK0F.
+      Souscrit a un topic sensor_msgs/LaserScan via ros_gz_bridge depuis un gpu_lidar Gazebo.
+      Parametre : lidar_topic (ex: /sharp_left).
+    </description>
+  </class>
+</library>

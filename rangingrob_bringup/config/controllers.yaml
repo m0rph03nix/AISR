@@ -1,0 +1,26 @@
+controller_manager:
+  ros__parameters:
+    update_rate: 50  # Hz
+    # En Jazzy, type du controleur dans le namespace du controller_manager
+    range_sensor_broadcaster:
+      type: range_sensor_broadcaster/RangeSensorBroadcaster
+    # Injecteur de valeur pour le mockup (mock_sensor_commands=true)
+    forward_command_controller:
+      type: forward_command_controller/ForwardCommandController
+
+forward_command_controller:
+  ros__parameters:
+    joints:
+      - sharp_sensor
+    interface_name: range
+
+range_sensor_broadcaster:
+  ros__parameters:
+    # Doit correspondre au nom du sensor dans l'URDF (<sensor name="sharp_sensor">)
+    sensor_name: sharp_sensor
+    frame_id: sharp_sensor_frame
+    # Caracteristiques physiques du Sharp GP2Y0A51SK0F
+    min_range: 0.02       # metres
+    max_range: 0.15       # metres
+    field_of_view: 0.0872665  # radians (~5 degres)
+    radiation_type: 1     # 0=ULTRASOUND  1=INFRARED

@@ -1,0 +1,36 @@
+<library path="rangingrob_hardware_interface">
+  <class name="rangingrob_hardware/SharpHardwareInterface"
+         type="rangingrob_hardware::SharpHardwareInterface"
+         base_class_type="hardware_interface::SensorInterface">
+    <description>
+      Interface hardware serie pour le capteur Sharp GP2Y0A51SK0F via ESP32 Arduino.
+      Parametres : serial_port (ex: /dev/ttyUSB0), baud_rate (ex: 115200).
+    </description>
+  </class>
+</library>
+
+<library path="gazebo_rangingrob_hardware_interface">
+  <class name="rangingrob_hardware/GazeboSharpHardwareInterface"
+         type="rangingrob_hardware::GazeboSharpHardwareInterface"
+         base_class_type="hardware_interface::SensorInterface">
+    <description>
+      Interface hardware pour Gazebo Harmonic : souscrit a un topic sensor_msgs/LaserScan
+      publie par ros_gz_bridge depuis le capteur gpu_lidar Gazebo.
+      Parametre : lidar_topic (ex: /sharp_lidar).
+    </description>
+  </class>
+</library>
+
+<library path="sharp_multi_hardware_interface">
+  <class name="rangingrob_hardware/SharpMultiHardwareInterface"
+         type="rangingrob_hardware::SharpMultiHardwareInterface"
+         base_class_type="hardware_interface::SensorInterface">
+    <description>
+      Interface hardware serie pour N capteurs Sharp GP2Y0A51SK0F sur un seul port serie.
+      Protocole ESP32 : N valeurs en metres separees par des virgules par ligne CSV.
+      Ex. (3 capteurs) : "0.080,0.105,0.062\n"
+      L'ordre CSV doit correspondre a l'ordre des elements sensor dans l'URDF.
+      Parametres : serial_port (ex: /dev/ttyUSB1), baud_rate (ex: 115200).
+    </description>
+  </class>
+</library>

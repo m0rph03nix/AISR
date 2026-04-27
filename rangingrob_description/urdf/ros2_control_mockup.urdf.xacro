@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<!-- Mockup : aucun materiel requis.
+     mock_sensor_commands=true cree une interface de commande miroir qui permet
+     d'injecter des valeurs de test via un ForwardCommandController. -->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- mock_components/GenericSystem est un SystemInterface, pas un SensorInterface -->
+  <ros2_control name="SharpSensor" type="system">
+    <hardware>
+      <plugin>mock_components/GenericSystem</plugin>
+      <param name="mock_sensor_commands">true</param>
+    </hardware>
+    <sensor name="sharp_sensor">
+      <state_interface name="range"/>
+    </sensor>
+  </ros2_control>
+
+</robot>

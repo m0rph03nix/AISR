@@ -1,0 +1,56 @@
+<?xml version="1.0"?>
+<!-- Simulation Gazebo Harmonic.
+     Le plugin GazeboSharpHardwareInterface souscrit au topic /sharp_lidar
+     publie par ros_gz_bridge depuis le capteur gpu_lidar de Gazebo.
+     Le controller_manager tourne en node ROS separe (meme pattern que mockup/hardware). -->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <ros2_control name="SharpSensor" type="sensor">
+    <hardware>
+      <plugin>rangingrob_hardware/GazeboSharpHardwareInterface</plugin>
+      <!-- Topic ROS publie par ros_gz_bridge depuis Gazebo -->
+      <param name="lidar_topic">/sharp_lidar</param>
+    </hardware>
+    <sensor name="sharp_sensor">
+      <state_interface name="range"/>
+    </sensor>
+  </ros2_control>
+
+  <!-- Capteur gpu_lidar Gazebo Harmonic : 1 rayon frontal (simule un capteur IR).
+       Le rendu EGL est force sur Intel/Mesa via __EGL_VENDOR_LIBRARY_FILENAMES dans le
+       launch file (evite l'EGL NVIDIA defaillant sur Optimus). -->
+  <gazebo reference="sharp_sensor_frame">
+    <sensor name="sharp_lidar_sensor" type="gpu_lidar">
+      <topic>/sharp_lidar_gz</topic>
+      <always_on>true</always_on>
+      <update_rate>50</update_rate>
+      <visualize>true</visualize>
+      <lidar>
+        <scan>
+          <horizontal>
+            <samples>1</samples>
+            <resolution>1</resolution>
+            <min_angle>0.0</min_angle>
+            <max_angle>0.0</max_angle>
+          </horizontal>
+          <vertical>
+            <samples>1</samples>
+            <min_angle>0.0</min_angle>
+            <max_angle>0.0</max_angle>
+          </vertical>
+        </scan>
+        <range>
+          <min>0.02</min>
+          <max>0.15</max>
+          <resolution>0.001</resolution>
+        </range>
+        <noise>
+          <type>gaussian</type>
+          <mean>0.0</mean>
+          <stddev>0.005</stddev>
+        </noise>
+      </lidar>
+    </sensor>
+  </gazebo>
+
+</robot>

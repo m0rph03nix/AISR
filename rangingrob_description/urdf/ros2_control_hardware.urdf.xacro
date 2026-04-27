@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<!-- Hardware reel : ESP32 TTGO T-Display connecte en USB.
+     Le sketch Arduino envoie la distance en metres via port serie ASCII. -->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:arg name="serial_port" default="/dev/ttyUSB0"/>
+
+  <ros2_control name="SharpSensor" type="sensor">
+    <hardware>
+      <plugin>rangingrob_hardware/SharpHardwareInterface</plugin>
+      <param name="serial_port">$(arg serial_port)</param>
+      <param name="baud_rate">115200</param>
+    </hardware>
+    <sensor name="sharp_sensor">
+      <state_interface name="range"/>
+    </sensor>
+  </ros2_control>
+
+</robot>
