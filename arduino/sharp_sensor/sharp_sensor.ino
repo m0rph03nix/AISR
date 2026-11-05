@@ -2,8 +2,9 @@
 // Capteur : Sharp GP2Y0A51SK0F sur GPIO 36 (SVP / ADC1_CH0)
 // Protocole serie : "0.080\n" (float ASCII en metres, 50 Hz, 115200 bauds)
 //
-// Alimentation du capteur : 3V3 (pin 3.3V de la TTGO) -> Sharp Vcc
-// Sortie Sharp -> GPIO 36 directement (3.3V natif, aucun diviseur requis)
+// Alimentation du capteur : 5V de la TTGO -> Sharp Vcc (plage Sharp : 4.5 a 5.5 V),
+// avec un condensateur d'au moins 10 uF entre Vcc et GND pres du capteur.
+// Sortie Sharp -> GPIO 36 directement : verifier au multimetre qu'elle reste sous 3.3 V.
 //
 // Bibliotheque requise : TFT_eSPI (Bodmer)
 //   Configuration dans User_Setup.h : selectionner "TTGO T-Display" ou
@@ -13,6 +14,9 @@
 #include <SPI.h>
 
 static const int    SENSOR_PIN    = 36;  // SVP, ADC1_CH0, input-only
+// Valeurs de depart a remplacer par votre calibration
+static const float  CAL_K         = 4.8f;
+static const float  CAL_P         = 1.22f;
 static const int    SEND_RATE_HZ  = 50;
 static const unsigned long PERIOD_MS = 1000UL / SEND_RATE_HZ;
 
@@ -30,7 +34,7 @@ void setup()
   digitalWrite(TFT_BL, HIGH);
 
   tft.init();
-  tft.setRotation(0);  // paysage sur TTGO T-Display V1.1 (essayer 2 si image inversee)
+  tft.setRotation(1);  // paysage sur TTGO T-Display V1.1 (essayer 3 si image inversee)
   tft.fillScreen(TFT_BLACK);
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
   tft.setTextSize(2);
@@ -50,8 +54,7 @@ void loop()
   }
   last_send_ms = now;
 
-  int raw = analogRead(SENSOR_PIN);
-  float distance_m = raw_to_meters(raw);
+  float distance_m = mv_to_meters(analogReadMilliVolts(SENSOR_PIN));
 
   // Envoi serie pour ros2_control (protocole ASCII)
   Serial.println(distance_m, 3);
@@ -63,21 +66,15 @@ void loop()
   }
 }
 
-// Conversion ADC -> metres pour Sharp GP2Y0A51SK0F alimente en 3.3V.
-// Le capteur est alimente directement par la broche 3V3 de la TTGO.
-// La tension de sortie est lue directement sur GPIO 36 (ADC pleine echelle = 3.3V).
-//
-// Formule ajustee depuis la courbe datasheet (Vcc = 3.3V, ADC 12 bits) :
-//   d(cm) = 4.8 / Vout^1.22   (approximation puissance, valable 2-15 cm)
-//   Vout = raw * 3.3 / 4095
-float raw_to_meters(int raw)
+// Conversion tension -> metres pour Sharp GP2Y0A51SK0F alimente en 5 V.
+// Modele : d(cm) = CAL_K / Vout^CAL_P. CAL_K et CAL_P sont a recalibrer sur votre capteur.
+float mv_to_meters(int millivolts)
 {
-  if (raw <= 10) {
-    return 0.15f;  // ADC sature bas = obstacle trop loin ou hors plage
+  if (millivolts <= 10) {
+    return 0.15f;  // pas de signal exploitable : hors plage
   }
 
-  float vout = raw * 3.3f / 4095.0f;
-  float distance_cm = 4.8f / powf(vout, 1.22f);
+  float distance_cm = CAL_K / powf(millivolts / 1000.0f, CAL_P);
 
   if (distance_cm < 2.0f)  distance_cm = 2.0f;
   if (distance_cm > 15.0f) distance_cm = 15.0f;

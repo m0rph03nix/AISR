@@ -1,5 +1,7 @@
 # rangingrob_bringup
 
+Exemple minimal a un capteur, independant des TP simplebot.
+
 Launch files, configuration controllers et RViz pour l'exemple ros2_control Sharp.
 
 ## Launch files

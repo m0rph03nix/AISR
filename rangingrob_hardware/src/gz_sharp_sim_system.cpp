@@ -1,10 +1,13 @@
 #include "rangingrob_hardware/gz_sharp_sim_system.hpp"
 
+#include <algorithm>
 #include <cmath>
 #include <pluginlib/class_list_macros.hpp>
 
 namespace rangingrob_hardware
 {
+
+static constexpr float NEAR_MARGIN_M = 0.03f;
 
 bool GazeboSharpSimSystem::initSim(
   rclcpp::Node::SharedPtr & model_nh,
@@ -31,13 +34,17 @@ bool GazeboSharpSimSystem::initSim(
     [this](const sensor_msgs::msg::LaserScan::SharedPtr msg) {
       if (msg->ranges.empty()) {return;}
       const float r = msg->ranges[0];
-      if (!std::isfinite(r) || r > msg->range_max) {
-        range_value_ = static_cast<double>(msg->range_max);
-      } else if (r < msg->range_min) {
-        range_value_ = static_cast<double>(msg->range_min);
-      } else {
-        range_value_ = static_cast<double>(r);
+      // REP 117 : -inf = trop pres, +inf = rien detecte, NaN = mesure invalide.
+      if (std::isnan(r)) {
+        return;
       }
+      // gpu_lidar renvoie aussi +inf sous range_min. Un obstacle a moins de 5 cm ne pouvant pas
+      // disparaitre en un cycle, +inf signifie alors "trop pres" et non "rien detecte".
+      if (std::isinf(r) && r > 0.0f && range_value_ < msg->range_min + NEAR_MARGIN_M) {
+        range_value_ = static_cast<double>(msg->range_min);
+        return;
+      }
+      range_value_ = static_cast<double>(std::clamp(r, msg->range_min, msg->range_max));
     });
 
   RCLCPP_INFO(model_nh->get_logger(),

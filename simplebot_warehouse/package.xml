@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>simplebot_warehouse</name>
+  <version>0.1.0</version>
+  <description>Plateau du mini-entrepot : carte Nav2, monde Gazebo et parametres Nav2</description>
+  <maintainer email="raphael.leber@gmail.com">raph</maintainer>
+  <license>Apache-2.0</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <buildtool_depend>ament_cmake_python</buildtool_depend>
+
+  <exec_depend>rclpy</exec_depend>
+  <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>std_srvs</exec_depend>
+  <exec_depend>tf2_ros</exec_depend>
+  <exec_depend>nav2_simple_commander</exec_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

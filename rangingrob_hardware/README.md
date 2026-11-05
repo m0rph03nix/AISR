@@ -1,35 +1,40 @@
 # rangingrob_hardware
 
-Plugins `hardware_interface::SensorInterface` pour ros2_control.
+Plugins ros2_control pour les capteurs Sharp GP2Y0A51SK0F.
 
-## Plugins fournis
+| Plugin | Type | Utilisation |
+|---|---|---|
+| `SharpMultiHardwareInterface` | `SensorInterface` | simplebot reel (TP4) |
+| `GazeboSharpSimSystem` | `GazeboSimSystemInterface` | simplebot dans Gazebo (TP3) |
+| `SharpHardwareInterface` | `SensorInterface` | Demo a un capteur |
+| `GazeboSharpHardwareInterface` | `SensorInterface` | Demo a un capteur, `controller_manager` separe |
 
-### `rangingrob_hardware/SharpHardwareInterface`
+## `rangingrob_hardware/SharpMultiHardwareInterface`
 
-Lit la distance depuis un ESP32 TTGO T-Display via port serie.
+Lit N capteurs sur un seul port serie. Protocole : `0.080,0.105,0.062\n` (metres, 50 Hz).
+L'ordre des valeurs doit correspondre a l'ordre des `<sensor>` dans l'URDF.
 
-**Protocole serie :** `0.350\n` (float ASCII en metres, 50 Hz, 115200 bauds)
+| Parametre URDF | Defaut | Description |
+|---|---|---|
+| `serial_port` | obligatoire | Port serie de l'ESP32 |
+| `baud_rate` | obligatoire | 9600, 57600 ou 115200 |
+| `timeout_ms` | 1000 | Delai maximal entre deux trames valides |
 
-**Parametres URDF :**
-| Parametre    | Valeur par defaut | Description              |
-|--------------|-------------------|--------------------------|
-| serial_port  | /dev/ttyUSB0      | Port serie de l'ESP32    |
-| baud_rate    | 115200            | Vitesse de communication |
+Si aucune trame valide n'arrive dans ce delai, `read()` renvoie `ERROR` : ros2_control desactive
+le composant et ses controleurs, au lieu de publier une valeur figee. Le delai est de 5 s avant
+la premiere trame, car l'ESP32 redemarre a l'ouverture du port.
 
-**Prerequis :** `sudo usermod -aG dialout $USER` puis reconnexion.
+Prerequis : `sudo usermod -aG dialout $USER` puis reconnexion.
 
-### `rangingrob_hardware/GazeboSharpHardwareInterface`
+## `rangingrob_hardware/GazeboSharpSimSystem`
 
-Lit la distance depuis un topic `sensor_msgs/msg/LaserScan` (1 rayon)
-publie par `ros_gz_bridge` depuis un capteur `gpu_lidar` Gazebo Harmonic.
+Lit un `sensor_msgs/LaserScan` a un rayon publie par `ros_gz_bridge` depuis un `gpu_lidar`.
 
-**Parametre URDF :**
-| Parametre   | Valeur par defaut | Description              |
-|-------------|-------------------|--------------------------|
-| lidar_topic | /sharp_lidar      | Topic LaserScan source   |
+| Parametre URDF | Description |
+|---|---|
+| `lidar_topic` | Topic LaserScan source |
 
-## Architecture
+`gpu_lidar` renvoie `+inf` aussi bien sans obstacle que sous `range_min`. Le plugin considere
+donc qu'un obstacle vu a moins de 5 cm reste "trop pres" tant qu'aucune mesure ne le contredit.
 
-Les deux plugins exportent la meme interface d'etat `sharp_sensor/range`
-(float en metres). Le `RangeSensorBroadcaster` et les autres consumers
-ne voient pas la difference entre les deux sources.
+Tous ces plugins exportent la meme interface d'etat `<sensor>/range`, en metres.

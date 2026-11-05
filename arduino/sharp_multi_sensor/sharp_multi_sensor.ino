@@ -4,8 +4,9 @@
 //   GPIO 39 (VN  / ADC1_CH3) -> capteur droit
 //   GPIO 34       (ADC1_CH6) -> capteur centre
 //
-// Alimentation : 3V3 de la TTGO -> Vcc de chaque capteur
-// Sortie Sharp -> GPIO directement (tension 3.3V, aucun diviseur requis)
+// Alimentation : 5V de la TTGO -> Vcc de chaque capteur (plage Sharp : 4.5 a 5.5 V),
+// avec un condensateur d'au moins 10 uF entre Vcc et GND pres de chaque capteur.
+// Sortie Sharp -> GPIO directement : verifier au multimetre qu'elle reste sous 3.3 V.
 //
 // Protocole serie : "0.080,0.105,0.062\n"  (CSV, metres, 3 decimales, 50 Hz, 115200 bauds)
 // Format attendu par SharpMultiHardwareInterface : N valeurs separees par virgules.
@@ -18,6 +19,10 @@
 static const int   N_SENSORS     = 3;
 static const int   SENSOR_PINS[N_SENSORS]  = {36, 39, 34};
 static const char* SENSOR_LABELS[N_SENSORS] = {"G", "D", "C"};  // gauche, droit, centre
+
+// Valeurs de depart a remplacer par votre calibration (TP4)
+static const float CAL_K = 4.8f;
+static const float CAL_P = 1.22f;
 
 static const int          SEND_RATE_HZ = 50;
 static const unsigned long PERIOD_MS   = 1000UL / SEND_RATE_HZ;
@@ -65,7 +70,7 @@ void loop()
   last_send_ms = now;
 
   for (int i = 0; i < N_SENSORS; i++) {
-    distances_m[i] = raw_to_meters(analogRead(SENSOR_PINS[i]));
+    distances_m[i] = mv_to_meters(analogReadMilliVolts(SENSOR_PINS[i]));
   }
 
   // Trame CSV : "0.080,0.105,0.062\n"
@@ -86,17 +91,15 @@ void loop()
 
 // ---------------------------------------------------------------------------
 
-// Conversion ADC -> metres pour Sharp GP2Y0A51SK0F alimente en 3.3V.
-// Formule puissance ajustee depuis la courbe datasheet (plage 2-15 cm) :
-//   d(cm) = 4.8 / Vout^1.22    avec Vout = raw * 3.3 / 4095
-float raw_to_meters(int raw)
+// Conversion tension -> metres pour Sharp GP2Y0A51SK0F alimente en 5 V.
+// Modele : d(cm) = CAL_K / Vout^CAL_P. CAL_K et CAL_P sont a recalibrer sur vos capteurs (TP4).
+float mv_to_meters(int millivolts)
 {
-  if (raw <= 10) {
-    return 0.15f;  // ADC sature bas = hors plage ou rien detecte
+  if (millivolts <= 10) {
+    return 0.15f;  // pas de signal exploitable : hors plage
   }
 
-  float vout = raw * 3.3f / 4095.0f;
-  float d_cm = 4.8f / powf(vout, 1.22f);
+  float d_cm = CAL_K / powf(millivolts / 1000.0f, CAL_P);
 
   if (d_cm < 2.0f)  d_cm = 2.0f;
   if (d_cm > 15.0f) d_cm = 15.0f;

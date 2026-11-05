@@ -8,7 +8,7 @@ Description URDF du robot avec capteur Sharp GP2Y0A51SK0F.
 urdf/
   robot.urdf.xacro              -- robot de base avec le lien capteur
   ros2_control_mockup.urdf.xacro   -- hardware simule (mock_components)
-  ros2_control_hardware.urdf.xacro -- hardware reel (Arduino via serie)
+  ros2_control_hardware.urdf.xacro -- hardware reel (ESP32 via serie)
   ros2_control_gazebo.urdf.xacro   -- simulation Gazebo Harmonic
 ```
 

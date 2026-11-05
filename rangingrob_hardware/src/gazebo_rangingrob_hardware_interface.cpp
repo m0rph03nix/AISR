@@ -1,7 +1,8 @@
 #include "rangingrob_hardware/gazebo_rangingrob_hardware_interface.hpp"
 
+#include <algorithm>
+#include <chrono>
 #include <cmath>
-#include <limits>
 
 #include "pluginlib/class_list_macros.hpp"
 #include "rclcpp/rclcpp.hpp"
@@ -12,9 +13,9 @@ namespace rangingrob_hardware
 static const rclcpp::Logger LOGGER = rclcpp::get_logger("GazeboSharpHardwareInterface");
 
 hardware_interface::CallbackReturn GazeboSharpHardwareInterface::on_init(
-  const hardware_interface::HardwareInfo & info)
+  const hardware_interface::HardwareComponentInterfaceParams & params)
 {
-  if (hardware_interface::SensorInterface::on_init(info) !=
+  if (hardware_interface::SensorInterface::on_init(params) !=
     hardware_interface::CallbackReturn::SUCCESS)
   {
     return hardware_interface::CallbackReturn::ERROR;
@@ -41,14 +42,12 @@ hardware_interface::CallbackReturn GazeboSharpHardwareInterface::on_activate(
       if (msg->ranges.empty()) {
         return;
       }
-      float r = msg->ranges[0];
-      if (!std::isfinite(r) || r > msg->range_max) {
-        range_value_ = static_cast<double>(msg->range_max);
-      } else if (r < msg->range_min) {
-        range_value_ = static_cast<double>(msg->range_min);
-      } else {
-        range_value_ = static_cast<double>(r);
+      const float r = msg->ranges[0];
+      // REP 117 : -inf = trop pres, +inf = rien detecte, NaN = mesure invalide.
+      if (std::isnan(r)) {
+        return;
       }
+      range_value_ = static_cast<double>(std::clamp(r, msg->range_min, msg->range_max));
     }
   );
 

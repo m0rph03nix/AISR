@@ -1,0 +1,13 @@
+# Solveur de cinématique inverse de MoveIt. Le bras a 2 axes : l'orientation de la cible doit être ignorée (rotation_scale: 0).
+scara_cpe_group:
+  kinematics_solver: pick_ik/PickIkPlugin
+  kinematics_solver_timeout: 0.05
+  kinematics_solver_attempts: 3
+  mode: global
+  position_scale: 1.0
+  rotation_scale: 0.0
+  position_threshold: 0.001
+  orientation_threshold: 3.2
+  cost_threshold: 0.0001
+  minimal_displacement_weight: 0.0
+  gd_step_size: 0.0001

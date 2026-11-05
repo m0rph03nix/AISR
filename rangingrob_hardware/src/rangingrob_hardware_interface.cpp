@@ -15,9 +15,9 @@ namespace rangingrob_hardware
 static const rclcpp::Logger LOGGER = rclcpp::get_logger("SharpHardwareInterface");
 
 hardware_interface::CallbackReturn SharpHardwareInterface::on_init(
-  const hardware_interface::HardwareInfo & info)
+  const hardware_interface::HardwareComponentInterfaceParams & params)
 {
-  if (hardware_interface::SensorInterface::on_init(info) !=
+  if (hardware_interface::SensorInterface::on_init(params) !=
     hardware_interface::CallbackReturn::SUCCESS)
   {
     return hardware_interface::CallbackReturn::ERROR;
@@ -86,7 +86,7 @@ hardware_interface::return_type SharpHardwareInterface::read(
         range_value_ = value;
       }
     } catch (const std::exception &) {
-      RCLCPP_WARN_THROTTLE(LOGGER, *rclcpp::Clock::make_shared(), 1000,
+      RCLCPP_WARN_THROTTLE(get_logger(), *get_clock(), 1000,
         "Trame serie illisible : '%s'", line.c_str());
     }
   }
@@ -112,13 +112,17 @@ bool SharpHardwareInterface::open_serial()
     return false;
   }
 
-  speed_t speed = B115200;
+  speed_t speed;
   if (baud_rate_ == 9600) {
     speed = B9600;
   } else if (baud_rate_ == 57600) {
     speed = B57600;
   } else if (baud_rate_ == 115200) {
     speed = B115200;
+  } else {
+    RCLCPP_ERROR(LOGGER, "baud_rate non supporte : %d", baud_rate_);
+    close_serial();
+    return false;
   }
 
   cfsetispeed(&tty, speed);

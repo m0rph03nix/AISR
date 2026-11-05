@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<robot name="scara_cpe" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:arg name="hardware_type" default="mock"/>
+  <xacro:arg name="dynamixel_port" default="/dev/ttyUSB1"/>
+
+  <xacro:include filename="$(find scara_cpe_description)/urdf/scara_cpe.urdf.xacro"/>
+  <xacro:include filename="$(find scara_station)/urdf/ros2_control_$(arg hardware_type).urdf.xacro"/>
+
+</robot>
